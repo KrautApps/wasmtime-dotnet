@@ -77,6 +77,10 @@ namespace Wasmtime
             // compatible with .NET, so it is always disabled.
             Native.wasmtime_config_wasm_component_model_async_set(handle, false);
 
+            // Concurrency support defaults to on in builds with component-model async, and it makes every
+            // synchronous call into a component allocate a task record.
+            Native.wasmtime_config_concurrency_support_set(handle, false);
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 // See WithMacosMachPorts for why this differs from Wasmtime's default.
@@ -616,6 +620,9 @@ namespace Wasmtime
 
             [DllImport(Engine.LibraryName)]
             public static extern void wasmtime_config_wasm_component_model_async_set(Handle config, [MarshalAs(UnmanagedType.I1)] bool enable);
+
+            [DllImport(Engine.LibraryName)]
+            public static extern void wasmtime_config_concurrency_support_set(Handle config, [MarshalAs(UnmanagedType.I1)] bool enable);
 
             [DllImport(Engine.LibraryName)]
             public static extern void wasmtime_config_wasm_simd_set(Handle config, [MarshalAs(UnmanagedType.I1)] bool enable);
