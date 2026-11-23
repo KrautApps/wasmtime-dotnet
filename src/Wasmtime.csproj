@@ -81,7 +81,8 @@ The .NET embedding of Wasmtime enables .NET code to instantiate WebAssembly modu
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
-  <Target Name="RunCodeTemplates" BeforeTargets="DispatchToInnerBuilds">
+  <!-- SkipCodeTemplates=true builds from the committed generated files, without restoring the t4 tool. -->
+  <Target Name="RunCodeTemplates" BeforeTargets="DispatchToInnerBuilds" Condition="'$(SkipCodeTemplates)' != 'true'">
     <!-- Generate the code files from the T4 text templates.
          We use the "DispatchToInnerBuilds" target so that they are only run once when
          building the project, instead of for each target framework. -->
@@ -156,7 +157,8 @@ The .NET embedding of Wasmtime enables .NET code to instantiate WebAssembly modu
   </ItemGroup>
 
   <!-- This target downloads wasmtime and runs before any inner TFM-specific builds -->
-  <Target Name="DownloadWasmtime" BeforeTargets="DispatchToInnerBuilds">
+  <!-- UseExternalWasmtimeLibrary=true is for embedders that supply their own wasmtime library. -->
+  <Target Name="DownloadWasmtime" BeforeTargets="DispatchToInnerBuilds" Condition="'$(UseExternalWasmtimeLibrary)' != 'true'">
     <DownloadFile Condition="('$(Packing)'=='true' Or '%(Wasmtime.Copy)'=='true') And !Exists('$(BaseIntermediateOutputPath)/$(ReleaseFileNameBase)-%(Wasmtime.Arch)-%(Wasmtime.OS)-c-api.%(Wasmtime.FileExtension)')" SourceUrl="$(ReleaseURLBase)/$(ReleaseFileNameBase)-%(Wasmtime.Arch)-%(Wasmtime.OS)-c-api.%(Wasmtime.FileExtension)" DestinationFolder="$(BaseIntermediateOutputPath)" SkipUnchangedFiles="true" />
 
     <!-- Workaround for https://github.com/msys2/MSYS2-packages/issues/1548 -->
@@ -171,7 +173,7 @@ The .NET embedding of Wasmtime enables .NET code to instantiate WebAssembly modu
     </ItemGroup>
   </Target>
 
-   <Target Name="CopyWasmtimeLibrary" BeforeTargets="BeforeBuild">
+   <Target Name="CopyWasmtimeLibrary" BeforeTargets="BeforeBuild" Condition="'$(UseExternalWasmtimeLibrary)' != 'true'">
     <ItemGroup>
       <Content Condition="'%(Wasmtime.Copy)'=='true'" Include="$(BaseIntermediateOutputPath)$(ReleaseFileNameBase)-%(Wasmtime.Arch)-%(Wasmtime.OS)-c-api/lib/%(Wasmtime.LibraryFilename)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
